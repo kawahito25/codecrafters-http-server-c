@@ -54,8 +54,15 @@ int main() {
   printf("Waiting for a client to connect...\n");
   client_addr_len = sizeof(client_addr);
 
-  accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
+  int sock;  // 通信用ソケット（server_fd は待ち受け用ソケット）
+  sock = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
   printf("Client connected\n");
+
+  FILE* outf = fdopen(sock, "w");
+
+  char response[1024] = "HTTP/1.1 200 OK\r\n\r\n";
+  fputs(response, outf);
+  fclose(outf);
 
   close(server_fd);
 

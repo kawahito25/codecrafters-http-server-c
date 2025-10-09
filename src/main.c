@@ -7,6 +7,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+struct HTTPRequest {
+  char* path;
+};
+
+struct HTTPRequest* read_request(FILE* in);
+
 int main() {
   // Disable output buffering
   setbuf(stdout, NULL);
@@ -58,13 +64,39 @@ int main() {
   sock = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
   printf("Client connected\n");
 
+  FILE* inf = fdopen(sock, "r");
   FILE* outf = fdopen(sock, "w");
 
-  char response[1024] = "HTTP/1.1 200 OK\r\n\r\n";
+  struct HTTPRequest* request = read_request(inf);
+
+  char response[1024];
+  if (strcmp(request->path, "/") == 0) {
+    strcpy(response, "HTTP/1.1 200 OK\r\n\r\n");
+  } else {
+    strcpy(response, "HTTP/1.1 404 Not Found\r\n\r\n");
+  }
+
   fputs(response, outf);
   fclose(outf);
 
   close(server_fd);
 
   return 0;
+}
+
+struct HTTPRequest* read_request(FILE* in) {
+  struct HTTPRequest* req;
+  char* p;
+
+  char buf[2048];
+  fgets(buf, sizeof buf, in);
+
+  req = malloc(sizeof(struct HTTPRequest));
+  p = strchr(buf, ' ') + 1;  // リクエストパスの先頭へのポインタ
+  *strchr(p, ' ') = '\0';    // リクエストパスの末尾の空白を \0 に変更
+
+  req->path = malloc(strlen(p));
+  strcpy(req->path, p);
+
+  return req;
 }

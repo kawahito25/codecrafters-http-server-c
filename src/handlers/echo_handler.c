@@ -1,8 +1,8 @@
-#include "echo_controller.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "handler.h"
 
 void handle_echo(struct HTTPRequest* req, struct HTTPResponse* res) {
   res->status_code = 200;

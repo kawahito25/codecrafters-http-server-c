@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-#include "controllers/echo_controller.h"
+#include "handlers/handler.h"
 
 #define ECHO_PREFIX "/echo/"
 

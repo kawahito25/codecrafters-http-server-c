@@ -39,24 +39,32 @@ struct HTTPResponse* init_http_response() {
   return res;
 }
 
-void append_response_header(struct HTTPResponse* res, char* key, char* value) {
-  if (res->header_fields == NULL) {
-    res->header_fields = malloc(sizeof(struct HTTPHeaderField));
+static void append_header_common(struct HTTPHeaderField** fields, int* count,
+                                 char* key, char* value) {
+  if (*fields == NULL) {
+    *fields = malloc(sizeof(struct HTTPHeaderField));
   } else {
-    void* tmp = realloc(res->header_fields, sizeof(struct HTTPHeaderField) *
-                                                (res->header_count + 1));
+    void* tmp = realloc(*fields, sizeof(struct HTTPHeaderField) * (*count + 1));
     if (tmp == NULL) {
-      free(res->header_fields);
+      free(*fields);
       exit(1);
     }
-    res->header_fields = tmp;
+    *fields = tmp;
   }
 
-  res->header_fields[res->header_count].key = malloc(strlen(key) + 1);
-  strcpy(res->header_fields[res->header_count].key, key);
+  (*fields)[*count].key = malloc(strlen(key) + 1);
+  strcpy((*fields)[*count].key, key);
 
-  res->header_fields[res->header_count].value = malloc(strlen(value) + 1);
-  strcpy(res->header_fields[res->header_count].value, value);
+  (*fields)[*count].value = malloc(strlen(value) + 1);
+  strcpy((*fields)[*count].value, value);
 
-  res->header_count++;
+  (*count)++;
+}
+
+void append_response_header(struct HTTPResponse* res, char* key, char* value) {
+  append_header_common(&res->header_fields, &res->header_count, key, value);
+}
+
+void append_request_header(struct HTTPRequest* req, char* key, char* value) {
+  append_header_common(&req->header_fields, &req->header_count, key, value);
 }

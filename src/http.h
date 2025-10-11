@@ -13,6 +13,8 @@ struct HTTPHeaderField {
 
 struct HTTPRequest {
   char* path;
+  struct HTTPHeaderField* header_fields;
+  int header_count;
 };
 
 struct HTTPResponse {
@@ -28,5 +30,6 @@ void free_http_response(struct HTTPResponse* req);
 
 struct HTTPRequest* read_request(FILE* in);
 struct HTTPResponse* init_http_response();
+void append_request_header(struct HTTPRequest* res, char* key, char* value);
 void append_response_header(struct HTTPResponse* res, char* key, char* value);
 #endif

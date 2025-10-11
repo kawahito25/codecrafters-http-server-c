@@ -87,6 +87,8 @@ int main() {
 
   struct HTTPRequest* req = read_request(inf);
   struct HTTPResponse* res = malloc(sizeof(struct HTTPResponse));
+  res->header_fields = NULL;
+  res->body = NULL;
   res->header_count = 0;
 
   handle_request(req, res);
@@ -159,10 +161,10 @@ void append_response_header(struct HTTPResponse* res, char* key, char* value) {
     res->header_fields = tmp;
   }
 
-  res->header_fields[res->header_count].key = malloc(strlen(key));
+  res->header_fields[res->header_count].key = malloc(strlen(key) + 1);
   strcpy(res->header_fields[res->header_count].key, key);
 
-  res->header_fields[res->header_count].value = malloc(strlen(value));
+  res->header_fields[res->header_count].value = malloc(strlen(value) + 1);
   strcpy(res->header_fields[res->header_count].value, value);
 
   res->header_count++;

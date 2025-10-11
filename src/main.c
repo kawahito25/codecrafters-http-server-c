@@ -21,7 +21,7 @@ struct HTTPResponse {
   char reason_phrase[256];  // HTTP/2以降では存在しない
   struct HTTPHeaderField* header_fields;
   int header_count;
-  unsigned char* body;
+  char* body;
 };
 
 struct HTTPRequest* read_request(FILE* in);
@@ -133,11 +133,11 @@ void handle_request(struct HTTPRequest* req, struct HTTPResponse* res) {
     strcpy(res->reason_phrase, "OK");
 
     char* p = req->path + strlen(ECHO_PREFIX);
-    res->body = malloc(strlen(req->path) - strlen(ECHO_PREFIX));
+    res->body = malloc(strlen(p) + 1);
     strcpy(res->body, p);
 
     char buf[256];
-    sprintf(buf, "%d", strlen(res->body));
+    sprintf(buf, "%ld", strlen(res->body));
     append_response_header(res, CONTENT_LENGTH_KEY, buf);
     append_response_header(res, CONTENT_TYPE_KEY, CONTENT_TYPE_TEXT_PLAIN);
   } else {
@@ -169,10 +169,7 @@ void append_response_header(struct HTTPResponse* res, char* key, char* value) {
 }
 
 void output_response(struct HTTPResponse* res, FILE* outf) {
-  char response_line[512];
-  sprintf(response_line, "HTTP/1.1 %d %s", res->status_code,
-          res->reason_phrase);
-  fputs(response_line, outf);
+  fprintf(outf, "HTTP/1.1 %d %s", res->status_code, res->reason_phrase);
   fputs("\r\n", outf);  // CRLF that marks the end of the status line
 
   for (int i = 0; i < res->header_count; i++) {

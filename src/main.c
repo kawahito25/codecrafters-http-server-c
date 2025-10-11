@@ -7,29 +7,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-struct HTTPHeaderField {
-  char* key;
-  char* value;
-};
+#include "http.h"
+#include "routing.h"
 
-struct HTTPRequest {
-  char* path;
-};
-
-struct HTTPResponse {
-  int status_code;
-  char reason_phrase[256];  // HTTP/2以降では存在しない
-  struct HTTPHeaderField* header_fields;
-  int header_count;
-  char* body;
-};
-
-struct HTTPRequest* read_request(FILE* in);
-void handle_request(struct HTTPRequest* req, struct HTTPResponse* res);
-void append_response_header(struct HTTPResponse* res, char* key, char* value);
 void output_response(struct HTTPResponse* res, FILE* out);
-void free_http_request(struct HTTPRequest* req);
-void free_http_response(struct HTTPResponse* req);
 
 int main() {
   // Disable output buffering
@@ -86,10 +67,7 @@ int main() {
   FILE* outf = fdopen(sock, "w");
 
   struct HTTPRequest* req = read_request(inf);
-  struct HTTPResponse* res = malloc(sizeof(struct HTTPResponse));
-  res->header_fields = NULL;
-  res->body = NULL;
-  res->header_count = 0;
+  struct HTTPResponse* res = init_http_response();
 
   handle_request(req, res);
   output_response(res, outf);
@@ -101,73 +79,6 @@ int main() {
   close(server_fd);
 
   return 0;
-}
-
-struct HTTPRequest* read_request(FILE* in) {
-  struct HTTPRequest* req;
-  char* p;
-
-  char buf[2048];
-  fgets(buf, sizeof buf, in);
-
-  req = malloc(sizeof(struct HTTPRequest));
-  p = strchr(buf, ' ') + 1;  // リクエストパスの先頭へのポインタ
-  *strchr(p, ' ') = '\0';    // リクエストパスの末尾の空白を \0 に変更
-
-  req->path = malloc(strlen(p));
-  strcpy(req->path, p);
-
-  return req;
-}
-
-#define ECHO_PREFIX "/echo/"
-
-#define CONTENT_LENGTH_KEY "Content-Length"
-#define CONTENT_TYPE_KEY "Content-Type"
-#define CONTENT_TYPE_TEXT_PLAIN "text/plain"
-
-void handle_request(struct HTTPRequest* req, struct HTTPResponse* res) {
-  if (strcmp(req->path, "/") == 0) {
-    res->status_code = 200;
-    strcpy(res->reason_phrase, "OK");
-  } else if (strncmp(req->path, ECHO_PREFIX, strlen(ECHO_PREFIX)) == 0) {
-    res->status_code = 200;
-    strcpy(res->reason_phrase, "OK");
-
-    char* p = req->path + strlen(ECHO_PREFIX);
-    res->body = malloc(strlen(p) + 1);
-    strcpy(res->body, p);
-
-    char buf[256];
-    sprintf(buf, "%ld", strlen(res->body));
-    append_response_header(res, CONTENT_LENGTH_KEY, buf);
-    append_response_header(res, CONTENT_TYPE_KEY, CONTENT_TYPE_TEXT_PLAIN);
-  } else {
-    res->status_code = 404;
-    strcpy(res->reason_phrase, "Not Found");
-  }
-}
-
-void append_response_header(struct HTTPResponse* res, char* key, char* value) {
-  if (res->header_fields == NULL) {
-    res->header_fields = malloc(sizeof(struct HTTPHeaderField));
-  } else {
-    void* tmp = realloc(res->header_fields, sizeof(struct HTTPHeaderField) *
-                                                (res->header_count + 1));
-    if (tmp == NULL) {
-      free(res->header_fields);
-      exit(1);
-    }
-    res->header_fields = tmp;
-  }
-
-  res->header_fields[res->header_count].key = malloc(strlen(key) + 1);
-  strcpy(res->header_fields[res->header_count].key, key);
-
-  res->header_fields[res->header_count].value = malloc(strlen(value) + 1);
-  strcpy(res->header_fields[res->header_count].value, value);
-
-  res->header_count++;
 }
 
 void output_response(struct HTTPResponse* res, FILE* outf) {
@@ -185,15 +96,4 @@ void output_response(struct HTTPResponse* res, FILE* outf) {
   if (res->body != NULL) {
     fputs(res->body, outf);  // TODO: \0 がない場合に対応できない
   }
-}
-
-void free_http_request(struct HTTPRequest* req) {
-  free(req->path);
-  free(req);
-}
-
-void free_http_response(struct HTTPResponse* res) {
-  free(res->body);
-  free(res->header_fields);
-  free(res);
 }

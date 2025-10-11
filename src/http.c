@@ -5,6 +5,7 @@
 
 void free_http_request(struct HTTPRequest* req) {
   free(req->path);
+  free(req->header_fields);
   free(req);
 }
 
@@ -14,19 +15,41 @@ void free_http_response(struct HTTPResponse* res) {
   free(res);
 }
 
+#define MAX_REQUEST_HEADER_LENGTH 4096
+
 struct HTTPRequest* read_request(FILE* in) {
   struct HTTPRequest* req;
   char* p;
 
-  char buf[2048];
-  fgets(buf, sizeof buf, in);
+  char buf[MAX_REQUEST_HEADER_LENGTH];
 
   req = malloc(sizeof(struct HTTPRequest));
+  req->header_fields = NULL;
+  req->header_count = 0;
+
+  /* ステータスライン */
+  fgets(buf, sizeof buf, in);
   p = strchr(buf, ' ') + 1;  // リクエストパスの先頭へのポインタ
   *strchr(p, ' ') = '\0';    // リクエストパスの末尾の空白を \0 に変更
-
   req->path = malloc(strlen(p));
   strcpy(req->path, p);
+
+  /* リクエストヘッダ */
+  int i = 0;
+  while (1) {
+    fgets(buf, sizeof buf, in);
+    if (strcmp(buf, "\r\n") == 0) {
+      break;
+    }
+
+    char* key = buf;
+    *strchr(key, ':') = '\0';
+
+    char* value = key + strlen(key) + 2;
+    value[strcspn(value, "\r\n")] = '\0';  // 注意: fgets は改行も読み込む
+
+    append_request_header(req, key, value);
+  }
 
   return req;
 }

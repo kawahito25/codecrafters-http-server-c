@@ -9,20 +9,47 @@
 
 #include "http.h"
 #include "routing.h"
+#include "servers/server.h"
 
+void do_http_service(int sock);
 void output_response(struct HTTPResponse* res, FILE* out);
 
-int main() {
+enum ServerMode {
+  SINGLE_PROCESS_SERVER_LOOP,
+  SERVER_MODE_UNKNWON,
+};
+
+struct {
+  const char* name;
+  ServerFunc server_func;
+} server_func_table[] = {
+    {"single_process_server_loop", serve_with_single_process_blocking_io},
+    {NULL, NULL}  // 終端用
+};
+
+int main(int argc, char* argv[]) {
+  int opt;
+  ServerFunc server_func = serve_with_single_process_blocking_io;
+
+  while ((opt = getopt(argc, argv, "m:")) != -1) {
+    switch (opt) {
+      case 'm':
+        for (int i = 0; server_func_table[i].name != NULL; i++) {
+          if (strcmp(optarg, server_func_table[i].name) == 0) {
+            server_func = server_func_table[i].server_func;
+          }
+        }
+        break;
+      case '?':
+        break;
+    }
+  }
+
   // Disable output buffering
   setbuf(stdout, NULL);
   setbuf(stderr, NULL);
 
-  // You can use print statements as follows for debugging, they'll be visible
-  // when running tests.
-  printf("Logs from your program will appear here!\n");
-
-  int server_fd, client_addr_len;
-  struct sockaddr_in client_addr;
+  int server_fd;
 
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (server_fd == -1) {
@@ -57,31 +84,28 @@ int main() {
   }
 
   printf("Waiting for a client to connect...\n");
-  client_addr_len = sizeof(client_addr);
 
-  // シングルスレッドのサーバーループ
-  while (1) {
-    int sock;  // 通信用ソケット（server_fd は待ち受け用ソケット）
-    sock = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
-    printf("Client connected\n");
-
-    FILE* inf = fdopen(sock, "r");
-    FILE* outf = fdopen(sock, "w");
-
-    struct HTTPRequest* req = read_request(inf);
-    struct HTTPResponse* res = init_http_response();
-
-    handle_request(req, res);
-    output_response(res, outf);
-
-    free_http_request(req);
-    free_http_response(res);
-    fclose(outf);
-  }
-
+  server_func(server_fd, do_http_service);
   close(server_fd);
 
   return 0;
+}
+
+void do_http_service(int sock) {
+  FILE* inf = fdopen(sock, "r");
+  FILE* outf = fdopen(sock, "w");
+
+  struct HTTPRequest* req = read_request(inf);
+  struct HTTPResponse* res = init_http_response();
+
+  handle_request(req, res);
+  output_response(res, outf);
+  fclose(outf);
+
+  free_http_request(req);
+  free_http_response(res);
+
+  close(sock);
 }
 
 void output_response(struct HTTPResponse* res, FILE* outf) {

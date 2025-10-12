@@ -2,8 +2,8 @@
 
 #include "server.h"
 
-void serve_with_single_process_blocking_io(int server_fd,
-                                           void (*do_service)(int sock)) {
+void serve_with_single_process_loop(int server_fd,
+                                    void (*do_service)(int sock)) {
   struct sockaddr_in client_addr;
   int client_addr_len = sizeof(client_addr);
 

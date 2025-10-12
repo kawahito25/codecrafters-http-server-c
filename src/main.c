@@ -14,13 +14,14 @@ struct {
   const char* name;
   ServerFunc server_func;
 } server_func_table[] = {
-    {"single_process_server_loop", serve_with_single_process_blocking_io},
+    {"single_process_server_loop", serve_with_single_process_loop},
+    {"serve_with_multi_process_loop", serve_with_multi_process_loop},
     {NULL, NULL}  // 終端用
 };
 
 int main(int argc, char* argv[]) {
   int opt;
-  ServerFunc server_func = serve_with_single_process_blocking_io;
+  ServerFunc server_func = serve_with_multi_process_loop;
 
   while ((opt = getopt(argc, argv, "m:")) != -1) {
     switch (opt) {

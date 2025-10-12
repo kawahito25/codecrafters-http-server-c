@@ -1,11 +1,12 @@
+#ifndef HTTP_CORE
+#define HTTP_CORE
+
 #include <stdio.h>
 
 #define CONTENT_LENGTH_KEY "Content-Length"
 #define CONTENT_TYPE_KEY "Content-Type"
 #define CONTENT_TYPE_TEXT_PLAIN "text/plain"
 
-#ifndef HTTP_H
-#define HTTP_H
 struct HTTPHeaderField {
   char* key;
   char* value;
@@ -25,11 +26,20 @@ struct HTTPResponse {
   char* body;
 };
 
-void free_http_request(struct HTTPRequest* req);
-void free_http_response(struct HTTPResponse* req);
-
-struct HTTPRequest* read_request(FILE* in);
+// 初期化
+struct HTTPRequest* init_http_request();
 struct HTTPResponse* init_http_response();
-void append_request_header(struct HTTPRequest* res, char* key, char* value);
+
+// free
+void free_http_request(struct HTTPRequest* req);
+void free_http_response(struct HTTPResponse* res);
+
+// HTTPヘッダー
+void append_request_header(struct HTTPRequest* req, char* key, char* value);
 void append_response_header(struct HTTPResponse* res, char* key, char* value);
+
+// I/O
+void read_request(struct HTTPRequest* req, FILE* in);
+void write_response(struct HTTPResponse* res, FILE* outf);
+
 #endif

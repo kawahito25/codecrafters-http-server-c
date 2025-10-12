@@ -1,7 +1,26 @@
-#include "http.h"
 
+#include "core.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+void write_response(struct HTTPResponse* res, FILE* outf) {
+  fprintf(outf, "HTTP/1.1 %d %s", res->status_code, res->reason_phrase);
+  fputs("\r\n", outf);  // CRLF that marks the end of the status line
+
+  for (int i = 0; i < res->header_count; i++) {
+    fputs(res->header_fields[i].key, outf);
+    fputs(": ", outf);
+    fputs(res->header_fields[i].value, outf);
+    fputs("\r\n", outf);
+  }
+  fputs("\r\n", outf);  // CRLF that marks the end of the headers
+
+  if (res->body != NULL) {
+    fputs(res->body, outf);  // TODO: \0 がない場合に対応できない
+  }
+}
 
 void free_http_request(struct HTTPRequest* req) {
   free(req->path);
@@ -17,15 +36,10 @@ void free_http_response(struct HTTPResponse* res) {
 
 #define MAX_REQUEST_HEADER_LENGTH 4096
 
-struct HTTPRequest* read_request(FILE* in) {
-  struct HTTPRequest* req;
+void read_request(struct HTTPRequest* req, FILE* in) {
   char* p;
 
   char buf[MAX_REQUEST_HEADER_LENGTH];
-
-  req = malloc(sizeof(struct HTTPRequest));
-  req->header_fields = NULL;
-  req->header_count = 0;
 
   /* ステータスライン */
   fgets(buf, sizeof buf, in);
@@ -50,7 +64,12 @@ struct HTTPRequest* read_request(FILE* in) {
 
     append_request_header(req, key, value);
   }
+}
 
+struct HTTPRequest* init_http_request() {
+  struct HTTPRequest* req = malloc(sizeof(struct HTTPRequest));
+  req->header_fields = NULL;
+  req->header_count = 0;
   return req;
 }
 

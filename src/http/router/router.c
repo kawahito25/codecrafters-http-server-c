@@ -1,8 +1,9 @@
-#include "routing.h"
+#include "router.h"
 
 #include <string.h>
 
-#include "handlers/handler.h"
+#include "../core/core.h"
+#include "../handlers/handler.h"
 
 void handle_request(struct HTTPRequest* req, struct HTTPResponse* res) {
   if (strcmp(req->path, "/") == 0) {

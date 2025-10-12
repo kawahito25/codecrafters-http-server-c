@@ -7,17 +7,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "http.h"
-#include "routing.h"
+#include "http/http.h"
 #include "servers/server.h"
-
-void do_http_service(int sock);
-void output_response(struct HTTPResponse* res, FILE* out);
-
-enum ServerMode {
-  SINGLE_PROCESS_SERVER_LOOP,
-  SERVER_MODE_UNKNWON,
-};
 
 struct {
   const char* name;
@@ -89,38 +80,4 @@ int main(int argc, char* argv[]) {
   close(server_fd);
 
   return 0;
-}
-
-void do_http_service(int sock) {
-  FILE* inf = fdopen(sock, "r");
-  FILE* outf = fdopen(sock, "w");
-
-  struct HTTPRequest* req = read_request(inf);
-  struct HTTPResponse* res = init_http_response();
-
-  handle_request(req, res);
-  output_response(res, outf);
-  fclose(outf);
-
-  free_http_request(req);
-  free_http_response(res);
-
-  close(sock);
-}
-
-void output_response(struct HTTPResponse* res, FILE* outf) {
-  fprintf(outf, "HTTP/1.1 %d %s", res->status_code, res->reason_phrase);
-  fputs("\r\n", outf);  // CRLF that marks the end of the status line
-
-  for (int i = 0; i < res->header_count; i++) {
-    fputs(res->header_fields[i].key, outf);
-    fputs(": ", outf);
-    fputs(res->header_fields[i].value, outf);
-    fputs("\r\n", outf);
-  }
-  fputs("\r\n", outf);  // CRLF that marks the end of the headers
-
-  if (res->body != NULL) {
-    fputs(res->body, outf);  // TODO: \0 がない場合に対応できない
-  }
 }

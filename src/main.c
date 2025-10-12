@@ -59,22 +59,25 @@ int main() {
   printf("Waiting for a client to connect...\n");
   client_addr_len = sizeof(client_addr);
 
-  int sock;  // 通信用ソケット（server_fd は待ち受け用ソケット）
-  sock = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
-  printf("Client connected\n");
+  // シングルスレッドのサーバーループ
+  while (1) {
+    int sock;  // 通信用ソケット（server_fd は待ち受け用ソケット）
+    sock = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
+    printf("Client connected\n");
 
-  FILE* inf = fdopen(sock, "r");
-  FILE* outf = fdopen(sock, "w");
+    FILE* inf = fdopen(sock, "r");
+    FILE* outf = fdopen(sock, "w");
 
-  struct HTTPRequest* req = read_request(inf);
-  struct HTTPResponse* res = init_http_response();
+    struct HTTPRequest* req = read_request(inf);
+    struct HTTPResponse* res = init_http_response();
 
-  handle_request(req, res);
-  output_response(res, outf);
+    handle_request(req, res);
+    output_response(res, outf);
 
-  free_http_request(req);
-  free_http_response(res);
-  fclose(outf);
+    free_http_request(req);
+    free_http_response(res);
+    fclose(outf);
+  }
 
   close(server_fd);
 

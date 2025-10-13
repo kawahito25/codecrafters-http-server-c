@@ -7,4 +7,5 @@
 // 関数宣言
 void handle_echo(struct HTTPRequest* req, struct HTTPResponse* res);
 void handle_user_agent(struct HTTPRequest* req, struct HTTPResponse* res);
+void handle_file(struct HTTPRequest* req, struct HTTPResponse* res);
 #endif

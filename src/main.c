@@ -1,14 +1,22 @@
 #include <errno.h>
+#include <getopt.h>
+#include <limits.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "http/http.h"
 #include "servers/server.h"
+
+struct option longopts[] = {
+    {"directory", required_argument, NULL, 'd'},
+    {0, 0, 0, 0},  // 終端用
+};
 
 struct {
   const char* name;
@@ -19,11 +27,13 @@ struct {
     {NULL, NULL}  // 終端用
 };
 
+char dir_path[PATH_MAX + 1];
+
 int main(int argc, char* argv[]) {
   int opt;
   ServerFunc server_func = serve_with_multi_process_loop;
 
-  while ((opt = getopt(argc, argv, "m:")) != -1) {
+  while ((opt = getopt_long(argc, argv, "m:", longopts, NULL)) != -1) {
     switch (opt) {
       case 'm':
         for (int i = 0; server_func_table[i].name != NULL; i++) {
@@ -32,6 +42,13 @@ int main(int argc, char* argv[]) {
           }
         }
         break;
+      case 'd':
+        strcpy(dir_path, optarg);
+        struct stat dir_stat;
+        if (stat(dir_path, &dir_stat) == -1) {  // ディレクトリの存在確認
+          perror(dir_path);
+          exit(1);
+        };
       case '?':
         break;
     }

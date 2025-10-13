@@ -13,6 +13,8 @@ void handle_request(struct HTTPRequest* req, struct HTTPResponse* res) {
     handle_echo(req, res);
   } else if (strcmp(req->path, "/user-agent") == 0) {
     handle_user_agent(req, res);
+  } else if (strcmp(req->path, "/files")) {
+    handle_file(req, res);
   } else {
     res->status_code = 404;
     strcpy(res->reason_phrase, "Not Found");

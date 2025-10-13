@@ -6,6 +6,7 @@
 #define CONTENT_LENGTH_KEY "Content-Length"
 #define CONTENT_TYPE_KEY "Content-Type"
 #define CONTENT_TYPE_TEXT_PLAIN "text/plain"
+#define CONTENT_TYPE_BINARY "application/octet-stream"
 
 struct HTTPHeaderField {
   char* key;

@@ -43,8 +43,16 @@ void read_request(struct HTTPRequest* req, FILE* in) {
 
   /* ステータスライン */
   fgets(buf, sizeof buf, in);
-  p = strchr(buf, ' ') + 1;  // リクエストパスの先頭へのポインタ
-  *strchr(p, ' ') = '\0';    // リクエストパスの末尾の空白を \0 に変更
+  p = strchr(buf, ' ');
+  *p++ = '\0';
+
+  if (strcmp(buf, "GET") == 0) {
+    req->http_method = HTTP_METHOD_GET;
+  } else if (strcmp(buf, "POST") == 0) {
+    req->http_method = HTTP_METHOD_POST;
+  }
+
+  *strchr(p, ' ') = '\0';  // リクエストパスの末尾の空白を \0 に変更
   req->path = malloc(strlen(p));
   strcpy(req->path, p);
 

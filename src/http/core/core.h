@@ -13,8 +13,14 @@ struct HTTPHeaderField {
   char* value;
 };
 
+enum HTTPMethod {
+  HTTP_METHOD_GET,
+  HTTP_METHOD_POST,
+};
+
 struct HTTPRequest {
   char* path;
+  enum HTTPMethod http_method;
   struct HTTPHeaderField* header_fields;
   int header_count;
 };

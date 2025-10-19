@@ -22,8 +22,17 @@ void write_response(struct HTTPResponse* res, FILE* outf) {
   }
 }
 
+#define FREE_HTTP_HEADER_FIELDS(fields, count) \
+  do {                                         \
+    for (int i = 0; i < count; i++) {          \
+      free(fields[i].key);                     \
+      free(fields[i].value);                   \
+    }                                          \
+  } while (0);
+
 void free_http_request(struct HTTPRequest* req) {
   free(req->path);
+  FREE_HTTP_HEADER_FIELDS(req->header_fields, req->header_count);
   free(req->header_fields);
   free(req->body);
   free(req);
@@ -31,9 +40,12 @@ void free_http_request(struct HTTPRequest* req) {
 
 void free_http_response(struct HTTPResponse* res) {
   free(res->body);
+  FREE_HTTP_HEADER_FIELDS(res->header_fields, res->header_count);
   free(res->header_fields);
   free(res);
 }
+
+#undef FREE_HTTP_HEADER_FIELDS
 
 #define MAX_REQUEST_HEADER_LENGTH 4096
 

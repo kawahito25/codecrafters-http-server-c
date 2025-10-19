@@ -147,3 +147,15 @@ void append_response_header(struct HTTPResponse* res, char* key, char* value) {
 void append_request_header(struct HTTPRequest* req, char* key, char* value) {
   append_header_common(&req->header_fields, &req->header_count, key, value);
 }
+
+int find_header_location(struct HTTPHeaderField* fields, int count, char* key) {
+  int location = -1;
+  for (int i = 0; i < count; i++) {
+    if (strcmp(fields[i].key, key) == 0) {
+      location = i;
+      break;
+    }
+  }
+
+  return location;
+}

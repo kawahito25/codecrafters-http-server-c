@@ -5,12 +5,8 @@
 #include "handler.h"
 
 void handle_user_agent(struct HTTPRequest* req, struct HTTPResponse* res) {
-  int location = -1;
-  for (int i = 0; i < req->header_count; i++) {
-    if (strcmp(req->header_fields[i].key, "User-Agent") == 0) {
-      location = i;
-    }
-  }
+  int location =
+      find_header_location(req->header_fields, req->header_count, "User-Agent");
 
   if (location < 0) {
     res->status_code = 400;

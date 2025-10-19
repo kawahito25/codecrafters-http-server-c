@@ -101,14 +101,14 @@ void handle_post_file(struct HTTPRequest* req, struct HTTPResponse* res) {
   }
 
   int content_length = 0;
-  for (int i = 0; i < req->header_count; i++) {
-    if (strcmp(req->header_fields[i].key, CONTENT_LENGTH_KEY) == 0) {
-      content_length = atoi(req->header_fields[i].value);
-      break;
-    }
+  int location = find_header_location(req->header_fields, req->header_count,
+                                      CONTENT_LENGTH_KEY);
+  if (location < 0) {
+    res->status_code = 400;
+    strcpy(res->reason_phrase, "Bad Request");
+    return;
   }
-
-  size_t s = fwrite(req->body, 1, content_length, fp);
+  size_t s = fwrite(req->body, 1, atoi(req->header_fields[location].value), fp);
 
   res->status_code = 201;
   strcpy(res->reason_phrase, "Created");

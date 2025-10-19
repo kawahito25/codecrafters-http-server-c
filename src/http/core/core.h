@@ -45,6 +45,7 @@ void free_http_response(struct HTTPResponse* res);
 // HTTPヘッダー
 void append_request_header(struct HTTPRequest* req, char* key, char* value);
 void append_response_header(struct HTTPResponse* res, char* key, char* value);
+int find_header_location(struct HTTPHeaderField* fields, int count, char* key);
 
 // I/O
 void read_request(struct HTTPRequest* req, FILE* in);

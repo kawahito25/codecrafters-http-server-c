@@ -14,6 +14,7 @@ void do_http_service(int sock) {
 
   read_request(req, inf);
   handle_request(req, res);
+  append_common_response_headers(req, res);
   write_response(res, outf);
   fclose(outf);
 

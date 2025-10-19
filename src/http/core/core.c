@@ -159,3 +159,21 @@ int find_header_location(struct HTTPHeaderField* fields, int count, char* key) {
 
   return location;
 }
+
+// static char accept_encodings[1][5] = {"gzip"};
+
+void append_common_response_headers(struct HTTPRequest* req,
+                                    struct HTTPResponse* res) {
+  int location = -1;
+
+  // Content-Encoding
+  location = find_header_location(req->header_fields, req->header_count,
+                                  ACCEPT_ENCODING_KEY);
+  if (location >= 0) {
+    if (strcmp(req->header_fields[location].value, "gzip") == 0) {
+      append_response_header(res, CONTENT_ENCODING_KEY, "gzip");
+    }
+  }
+
+  return;
+}

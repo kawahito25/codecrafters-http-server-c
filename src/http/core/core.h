@@ -7,6 +7,8 @@
 #define CONTENT_TYPE_KEY "Content-Type"
 #define CONTENT_TYPE_TEXT_PLAIN "text/plain"
 #define CONTENT_TYPE_BINARY "application/octet-stream"
+#define ACCEPT_ENCODING_KEY "Accept-Encoding"
+#define CONTENT_ENCODING_KEY "Content-Encoding"
 
 struct HTTPHeaderField {
   char* key;
@@ -43,9 +45,11 @@ void free_http_request(struct HTTPRequest* req);
 void free_http_response(struct HTTPResponse* res);
 
 // HTTPヘッダー
+int find_header_location(struct HTTPHeaderField* fields, int count, char* key);
 void append_request_header(struct HTTPRequest* req, char* key, char* value);
 void append_response_header(struct HTTPResponse* res, char* key, char* value);
-int find_header_location(struct HTTPHeaderField* fields, int count, char* key);
+void append_common_response_headers(struct HTTPRequest* req,
+                                    struct HTTPResponse* res);
 
 // I/O
 void read_request(struct HTTPRequest* req, FILE* in);

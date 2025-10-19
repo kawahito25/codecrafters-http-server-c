@@ -23,6 +23,7 @@ struct HTTPRequest {
   enum HTTPMethod http_method;
   struct HTTPHeaderField* header_fields;
   int header_count;
+  char* body;
 };
 
 struct HTTPResponse {

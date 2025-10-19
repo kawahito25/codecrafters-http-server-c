@@ -25,6 +25,7 @@ void write_response(struct HTTPResponse* res, FILE* outf) {
 void free_http_request(struct HTTPRequest* req) {
   free(req->path);
   free(req->header_fields);
+  free(req->body);
   free(req);
 }
 
@@ -56,6 +57,8 @@ void read_request(struct HTTPRequest* req, FILE* in) {
   req->path = malloc(strlen(p));
   strcpy(req->path, p);
 
+  int content_length = 0;
+
   /* リクエストヘッダ */
   int i = 0;
   while (1) {
@@ -71,6 +74,20 @@ void read_request(struct HTTPRequest* req, FILE* in) {
     value[strcspn(value, "\r\n")] = '\0';  // 注意: fgets は改行も読み込む
 
     append_request_header(req, key, value);
+    if (strcmp(key, CONTENT_LENGTH_KEY) == 0) {
+      content_length = atoi(value);
+    }
+  }
+
+  /* リクエストボディ */
+  if (content_length) {
+    req->body = malloc(content_length);
+    // TODO:  content_length と 実際のリクエストボディの長さに差がある場合
+    size_t s = fread(req->body, 1, content_length, in);
+    if (ferror(in)) {
+      perror("read request body");
+      return;
+    }
   }
 }
 

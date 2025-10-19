@@ -12,7 +12,7 @@
 
 extern char dir_path[PATH_MAX + 1];
 
-void handle_file(struct HTTPRequest* req, struct HTTPResponse* res) {
+void handle_get_file(struct HTTPRequest* req, struct HTTPResponse* res) {
   struct dirent* ent;
 
   char file_path[PATH_MAX + 1];
@@ -69,4 +69,47 @@ void handle_file(struct HTTPRequest* req, struct HTTPResponse* res) {
   sprintf(buf, "%zd", size);
   append_response_header(res, CONTENT_LENGTH_KEY, buf);
   append_response_header(res, CONTENT_TYPE_KEY, CONTENT_TYPE_BINARY);
+}
+
+void handle_post_file(struct HTTPRequest* req, struct HTTPResponse* res) {
+  struct dirent* ent;
+
+  char file_path[PATH_MAX + 1];
+  strcpy(file_path, dir_path);
+  char* filename = req->path + strlen("/files/");
+  // Validate filename to prevent directory traversal
+  if (strstr(filename, "/") != NULL || strstr(filename, "..") != NULL) {
+    res->status_code = 400;
+    strcpy(res->reason_phrase, "Bad Request");
+    puts("prevent directory traversal");
+    return;
+  }
+  strncat(file_path, filename, PATH_MAX - strlen(file_path));
+
+  if (access(file_path, F_OK) == 0) {
+    res->status_code = 409;
+    strcpy(res->reason_phrase, "Conflict");
+    return;
+  }
+
+  FILE* fp = fopen(file_path, "w");
+  if (fp == NULL) {
+    perror(file_path);
+    res->status_code = 500;
+    strcpy(res->reason_phrase, "Internal Server Error");
+    return;
+  }
+
+  int content_length = 0;
+  for (int i = 0; i < req->header_count; i++) {
+    if (strcmp(req->header_fields[i].key, CONTENT_LENGTH_KEY) == 0) {
+      content_length = atoi(req->header_fields[i].value);
+      break;
+    }
+  }
+
+  size_t s = fwrite(req->body, 1, content_length, fp);
+
+  res->status_code = 201;
+  strcpy(res->reason_phrase, "Created");
 }

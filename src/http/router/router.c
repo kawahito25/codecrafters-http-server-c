@@ -17,7 +17,10 @@ void handle_request(struct HTTPRequest* req, struct HTTPResponse* res) {
     handle_user_agent(req, res);
   } else if (req->http_method == HTTP_METHOD_GET &&
              strcmp(req->path, "/files")) {
-    handle_file(req, res);
+    handle_get_file(req, res);
+  } else if (req->http_method == HTTP_METHOD_POST &&
+             strcmp(req->path, "/files")) {
+    handle_post_file(req, res);
   } else {
     res->status_code = 404;
     strcpy(res->reason_phrase, "Not Found");

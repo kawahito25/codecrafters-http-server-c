@@ -1,6 +1,0 @@
-{
-  "files.associations": {
-    "*.dbclient-js": "javascript",
-    "echo_controller.h": "c"
-  }
-}

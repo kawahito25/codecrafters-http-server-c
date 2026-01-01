@@ -89,6 +89,7 @@ void handle_post_file(struct HTTPRequest *req, struct HTTPResponse *res) {
   if (access(file_path, F_OK) == 0) {
     res->status_code = 409;
     strcpy(res->reason_phrase, "Conflict");
+    append_response_header(res, CONTENT_LENGTH_KEY, "0");
     return;
   }
 
@@ -97,6 +98,7 @@ void handle_post_file(struct HTTPRequest *req, struct HTTPResponse *res) {
     perror(file_path);
     res->status_code = 500;
     strcpy(res->reason_phrase, "Internal Server Error");
+    append_response_header(res, CONTENT_LENGTH_KEY, "0");
     return;
   }
 
@@ -112,4 +114,5 @@ void handle_post_file(struct HTTPRequest *req, struct HTTPResponse *res) {
 
   res->status_code = 201;
   strcpy(res->reason_phrase, "Created");
+  append_response_header(res, CONTENT_LENGTH_KEY, "0");
 }

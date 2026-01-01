@@ -12,12 +12,12 @@
 
 extern char dir_path[PATH_MAX + 1];
 
-void handle_get_file(struct HTTPRequest* req, struct HTTPResponse* res) {
-  struct dirent* ent;
+void handle_get_file(struct HTTPRequest *req, struct HTTPResponse *res) {
+  struct dirent *ent;
 
   char file_path[PATH_MAX + 1];
   strcpy(file_path, dir_path);
-  char* filename = req->path + strlen("/files/");
+  char *filename = req->path + strlen("/files/");
   // Validate filename to prevent directory traversal
   if (strstr(filename, "/") != NULL || strstr(filename, "..") != NULL) {
     res->status_code = 400;
@@ -71,12 +71,12 @@ void handle_get_file(struct HTTPRequest* req, struct HTTPResponse* res) {
   append_response_header(res, CONTENT_TYPE_KEY, CONTENT_TYPE_BINARY);
 }
 
-void handle_post_file(struct HTTPRequest* req, struct HTTPResponse* res) {
-  struct dirent* ent;
+void handle_post_file(struct HTTPRequest *req, struct HTTPResponse *res) {
+  struct dirent *ent;
 
   char file_path[PATH_MAX + 1];
   strcpy(file_path, dir_path);
-  char* filename = req->path + strlen("/files/");
+  char *filename = req->path + strlen("/files/");
   // Validate filename to prevent directory traversal
   if (strstr(filename, "/") != NULL || strstr(filename, "..") != NULL) {
     res->status_code = 400;
@@ -92,7 +92,7 @@ void handle_post_file(struct HTTPRequest* req, struct HTTPResponse* res) {
     return;
   }
 
-  FILE* fp = fopen(file_path, "w");
+  FILE *fp = fopen(file_path, "w");
   if (fp == NULL) {
     perror(file_path);
     res->status_code = 500;

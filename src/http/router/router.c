@@ -5,7 +5,7 @@
 #include "../core/core.h"
 #include "../handlers/handler.h"
 
-void handle_request(struct HTTPRequest* req, struct HTTPResponse* res) {
+void handle_request(struct HTTPRequest *req, struct HTTPResponse *res) {
   if (req->http_method == HTTP_METHOD_GET && strcmp(req->path, "/") == 0) {
     res->status_code = 200;
     strcpy(res->reason_phrase, "OK");

@@ -11,8 +11,8 @@
 #define CONTENT_ENCODING_KEY "Content-Encoding"
 
 struct HTTPHeaderField {
-  char* key;
-  char* value;
+  char *key;
+  char *value;
 };
 
 enum HTTPMethod {
@@ -21,38 +21,38 @@ enum HTTPMethod {
 };
 
 struct HTTPRequest {
-  char* path;
+  char *path;
   enum HTTPMethod http_method;
-  struct HTTPHeaderField* header_fields;
+  struct HTTPHeaderField *header_fields;
   int header_count;
-  char* body;
+  char *body;
 };
 
 struct HTTPResponse {
   int status_code;
   char reason_phrase[256];
-  struct HTTPHeaderField* header_fields;
+  struct HTTPHeaderField *header_fields;
   int header_count;
-  char* body;
+  char *body;
 };
 
 // 初期化
-struct HTTPRequest* init_http_request();
-struct HTTPResponse* init_http_response();
+struct HTTPRequest *init_http_request();
+struct HTTPResponse *init_http_response();
 
 // free
-void free_http_request(struct HTTPRequest* req);
-void free_http_response(struct HTTPResponse* res);
+void free_http_request(struct HTTPRequest *req);
+void free_http_response(struct HTTPResponse *res);
 
 // HTTPヘッダー
-int find_header_location(struct HTTPHeaderField* fields, int count, char* key);
-void append_request_header(struct HTTPRequest* req, char* key, char* value);
-void append_response_header(struct HTTPResponse* res, char* key, char* value);
-void append_common_response_headers(struct HTTPRequest* req,
-                                    struct HTTPResponse* res);
+int find_header_location(struct HTTPHeaderField *fields, int count, char *key);
+void append_request_header(struct HTTPRequest *req, char *key, char *value);
+void append_response_header(struct HTTPResponse *res, char *key, char *value);
+void append_common_response_headers(struct HTTPRequest *req,
+                                    struct HTTPResponse *res);
 
 // I/O
-void read_request(struct HTTPRequest* req, FILE* in);
-void write_response(struct HTTPResponse* res, FILE* outf);
+void read_request(struct HTTPRequest *req, FILE *in);
+void write_response(struct HTTPResponse *res, FILE *outf);
 
 #endif

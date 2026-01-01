@@ -4,10 +4,10 @@
 
 #include "handler.h"
 
-void handle_echo(struct HTTPRequest* req, struct HTTPResponse* res) {
+void handle_echo(struct HTTPRequest *req, struct HTTPResponse *res) {
   res->status_code = 200;
   strcpy(res->reason_phrase, "OK");
-  char* p = req->path + strlen("/echo/");
+  char *p = req->path + strlen("/echo/");
   res->body = malloc(strlen(p) + 1);
   strcpy(res->body, p);
   char buf[256];

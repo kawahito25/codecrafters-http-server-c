@@ -15,42 +15,42 @@
 
 struct option longopts[] = {
     {"directory", required_argument, NULL, 'd'},
-    {0, 0, 0, 0},  // 終端用
+    {0, 0, 0, 0}, // 終端用
 };
 
 struct {
-  const char* name;
+  const char *name;
   ServerFunc server_func;
 } server_func_table[] = {
     {"single_process_server_loop", serve_with_single_process_loop},
     {"serve_with_multi_process_loop", serve_with_multi_process_loop},
-    {NULL, NULL}  // 終端用
+    {NULL, NULL} // 終端用
 };
 
 char dir_path[PATH_MAX + 1];
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   int opt;
   ServerFunc server_func = serve_with_multi_process_loop;
 
   while ((opt = getopt_long(argc, argv, "m:", longopts, NULL)) != -1) {
     switch (opt) {
-      case 'm':
-        for (int i = 0; server_func_table[i].name != NULL; i++) {
-          if (strcmp(optarg, server_func_table[i].name) == 0) {
-            server_func = server_func_table[i].server_func;
-          }
+    case 'm':
+      for (int i = 0; server_func_table[i].name != NULL; i++) {
+        if (strcmp(optarg, server_func_table[i].name) == 0) {
+          server_func = server_func_table[i].server_func;
         }
-        break;
-      case 'd':
-        strcpy(dir_path, optarg);
-        struct stat dir_stat;
-        if (stat(dir_path, &dir_stat) == -1) {  // ディレクトリの存在確認
-          perror(dir_path);
-          exit(1);
-        };
-      case '?':
-        break;
+      }
+      break;
+    case 'd':
+      strcpy(dir_path, optarg);
+      struct stat dir_stat;
+      if (stat(dir_path, &dir_stat) == -1) { // ディレクトリの存在確認
+        perror(dir_path);
+        exit(1);
+      };
+    case '?':
+      break;
     }
   }
 
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
       .sin_addr = {htonl(INADDR_ANY)},
   };
 
-  if (bind(server_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) != 0) {
+  if (bind(server_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) != 0) {
     printf("Bind failed: %s \n", strerror(errno));
     return 1;
   }

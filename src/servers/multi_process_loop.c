@@ -20,11 +20,12 @@ void serve_with_multi_process_loop(int server_fd,
   int client_addr_len = sizeof(client_addr);
 
   while (1) {
-    int sock;  // 通信用ソケット（server_fd は待ち受け用ソケット）
-    sock = accept(server_fd, (struct sockaddr*)&client_addr, &client_addr_len);
+    int sock; // 通信用ソケット（server_fd は待ち受け用ソケット）
+    sock = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
 
     pid_t pid = fork();
-    if (pid < 0) exit(1);
+    if (pid < 0)
+      exit(1);
     if (pid == 0) { /* child process */
       do_service(sock);
       close(sock);

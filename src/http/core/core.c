@@ -30,7 +30,7 @@ void write_response(struct HTTPResponse *res, FILE *outf) {
     unsigned char *body;
 
     if (compress_with_gzip) {
-      size_t srcLen = strlen(res->body) + 1;
+      size_t srcLen = strlen(res->body);
 
       // 1. 圧縮後の最大サイズを計算し、バッファを確保
       uLong destLen = compressBound(srcLen) + 18; // gzipヘッダー分を考慮

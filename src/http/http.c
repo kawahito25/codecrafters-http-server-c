@@ -4,6 +4,7 @@
 
 #include "core/core.h"
 #include "router/router.h"
+#include <string.h>
 #include <sys/socket.h>
 
 void do_http_service(int sock) {
@@ -28,6 +29,17 @@ void do_http_service(int sock) {
     append_common_response_headers(req, res);
     write_response(res, outf);
     fflush(outf);
+
+    // when Connection: close, break the loop
+    int location = find_header_location(req->header_fields, req->header_count,
+                                        CONNECTION_KEY);
+    if (location >= 0 &&
+        strcmp(req->header_fields[location].value, "close") == 0) {
+      free_http_request(req);
+      free_http_response(res);
+      break;
+    }
+
     free_http_request(req);
     free_http_response(res);
   }

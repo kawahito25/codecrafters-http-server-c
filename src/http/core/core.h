@@ -9,6 +9,7 @@
 #define CONTENT_TYPE_BINARY "application/octet-stream"
 #define ACCEPT_ENCODING_KEY "Accept-Encoding"
 #define CONTENT_ENCODING_KEY "Content-Encoding"
+#define CONNECTION_KEY "Connection"
 
 struct HTTPHeaderField {
   char *key;

@@ -22,9 +22,13 @@ void write_response(struct HTTPResponse *res, FILE *outf) {
       compress_with_gzip = 1;
     }
   }
-  fputs("\r\n", outf); // CRLF that marks the end of the headers
 
-  if (res->body != NULL) {
+  if (res->body == NULL) {
+    fputs("\r\n", outf); // CRLF that marks the end of the headers
+  } else {
+    int content_length;
+    unsigned char *body;
+
     if (compress_with_gzip) {
       size_t srcLen = strlen(res->body) + 1;
 
@@ -55,10 +59,22 @@ void write_response(struct HTTPResponse *res, FILE *outf) {
       // 5. 後処理
       deflateEnd(&strm);
 
-      fwrite(dest, 1, actualGzipLen, outf);
+      content_length = actualGzipLen;
+      body = dest;
     } else {
-      fputs(res->body, outf); // TODO: \0 がない場合に対応できない
+      body = res->body;
+      content_length = strlen(res->body);
     }
+
+    fputs(CONTENT_LENGTH_KEY, outf);
+    fputs(": ", outf);
+    char buf[256];
+    sprintf(buf, "%d", content_length);
+    fputs(buf, outf);
+    fputs("\r\n", outf);
+    fputs("\r\n", outf); // CRLF that marks the end of the headers
+
+    fwrite(body, 1, content_length, outf);
   }
 }
 

@@ -105,13 +105,15 @@ void free_http_response(struct HTTPResponse *res) {
 
 #define MAX_REQUEST_HEADER_LENGTH 4096
 
-void read_request(struct HTTPRequest *req, FILE *in) {
+int read_request(struct HTTPRequest *req, FILE *in) {
   char *p;
 
   char buf[MAX_REQUEST_HEADER_LENGTH];
 
   /* ステータスライン */
-  fgets(buf, sizeof buf, in);
+  if (fgets(buf, sizeof buf, in) == NULL) {
+    return -1;
+  }
   p = strchr(buf, ' ');
   *p++ = '\0';
 
@@ -154,9 +156,11 @@ void read_request(struct HTTPRequest *req, FILE *in) {
     size_t s = fread(req->body, 1, content_length, in);
     if (ferror(in)) {
       perror("read request body");
-      return;
+      return -1;
     }
   }
+
+  return 0;
 }
 
 struct HTTPRequest *init_http_request() {

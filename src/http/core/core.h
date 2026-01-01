@@ -52,7 +52,7 @@ void append_common_response_headers(struct HTTPRequest *req,
                                     struct HTTPResponse *res);
 
 // I/O
-void read_request(struct HTTPRequest *req, FILE *in);
+int read_request(struct HTTPRequest *req, FILE *in);
 void write_response(struct HTTPResponse *res, FILE *outf);
 
 #endif

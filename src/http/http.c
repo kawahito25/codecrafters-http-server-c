@@ -4,8 +4,13 @@
 
 #include "core/core.h"
 #include "router/router.h"
+#include <sys/socket.h>
 
 void do_http_service(int sock) {
+  // 5秒でタイムアウトさせる
+  struct timeval tv = {5, 0};
+  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
   FILE *inf = fdopen(sock, "r");
   FILE *outf = fdopen(sock, "w");
 

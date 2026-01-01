@@ -111,6 +111,7 @@ void handle_post_file(struct HTTPRequest *req, struct HTTPResponse *res) {
     return;
   }
   size_t s = fwrite(req->body, 1, atoi(req->header_fields[location].value), fp);
+  fclose(fp);
 
   res->status_code = 201;
   strcpy(res->reason_phrase, "Created");

@@ -4,21 +4,61 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 
 void write_response(struct HTTPResponse *res, FILE *outf) {
   fprintf(outf, "HTTP/1.1 %d %s", res->status_code, res->reason_phrase);
   fputs("\r\n", outf); // CRLF that marks the end of the status line
 
+  int compress_with_gzip = 0;
   for (int i = 0; i < res->header_count; i++) {
     fputs(res->header_fields[i].key, outf);
     fputs(": ", outf);
     fputs(res->header_fields[i].value, outf);
     fputs("\r\n", outf);
+
+    if (strcmp(res->header_fields[i].key, CONTENT_ENCODING_KEY) == 0 &&
+        strcmp(res->header_fields[i].value, "gzip") == 0) {
+      compress_with_gzip = 1;
+    }
   }
   fputs("\r\n", outf); // CRLF that marks the end of the headers
 
   if (res->body != NULL) {
-    fputs(res->body, outf); // TODO: \0 がない場合に対応できない
+    if (compress_with_gzip) {
+      size_t srcLen = strlen(res->body) + 1;
+
+      // 1. 圧縮後の最大サイズを計算し、バッファを確保
+      uLong destLen = compressBound(srcLen) + 18; // gzipヘッダー分を考慮
+      unsigned char *dest = (unsigned char *)malloc(destLen);
+
+      // 2. z_stream 構造体の初期化
+      z_stream strm;
+      strm.zalloc = Z_NULL;
+      strm.zfree = Z_NULL;
+      strm.opaque = Z_NULL;
+      strm.next_in = (Bytef *)res->body;
+      strm.avail_in = (uInt)srcLen;
+      strm.next_out = dest;
+      strm.avail_out = (uInt)destLen;
+
+      // 3. gzip形式を指定して初期化 (16 + 15 が gzip のマジックナンバー)
+      if (deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 16 + 15, 8,
+                       Z_DEFAULT_STRATEGY) != Z_OK) {
+        return;
+      }
+
+      // 4. 圧縮実行
+      deflate(&strm, Z_FINISH);
+      uLong actualGzipLen = strm.total_out;
+
+      // 5. 後処理
+      deflateEnd(&strm);
+
+      fwrite(dest, 1, actualGzipLen, outf);
+    } else {
+      fputs(res->body, outf); // TODO: \0 がない場合に対応できない
+    }
   }
 }
 
@@ -183,6 +223,7 @@ void append_common_response_headers(struct HTTPRequest *req,
     }
     if (strcmp(start, "gzip") == 0) {
       append_response_header(res, CONTENT_ENCODING_KEY, "gzip");
+      break;
     }
     if (end != NULL) {
       start = end + 2;

@@ -169,11 +169,25 @@ void append_common_response_headers(struct HTTPRequest *req,
   // Content-Encoding
   location = find_header_location(req->header_fields, req->header_count,
                                   ACCEPT_ENCODING_KEY);
-  if (location >= 0) {
-    if (strcmp(req->header_fields[location].value, "gzip") == 0) {
+  if (location < 0) {
+    return;
+  }
+
+  char *start = req->header_fields[location].value;
+  char *end;
+
+  do {
+    end = strchr(start, ',');
+    if (end != NULL) {
+      *end = '\0';
+    }
+    if (strcmp(start, "gzip") == 0) {
       append_response_header(res, CONTENT_ENCODING_KEY, "gzip");
     }
-  }
+    if (end != NULL) {
+      start = end + 2;
+    }
+  } while (end != NULL);
 
   return;
 }

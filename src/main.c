@@ -24,6 +24,7 @@ struct {
 } server_func_table[] = {
     {"single_process_server_loop", serve_with_single_process_loop},
     {"serve_with_multi_process_loop", serve_with_multi_process_loop},
+    {"serve_with_event_loop", serve_with_event_loop},
     {NULL, NULL} // 終端用
 };
 

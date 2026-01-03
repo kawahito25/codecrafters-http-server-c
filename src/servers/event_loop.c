@@ -2,9 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/event.h> // kqueue 用のヘッダ
 #include <sys/time.h>
 #include <unistd.h>
+
+#if defined(__APPLE__)
+#include <sys/event.h> // kqueue 用のヘッダ
+#endif
 
 #include "server.h"
 
@@ -18,6 +21,7 @@ struct connection_state {
   size_t bytes_read;
 };
 
+#if defined(__APPLE__)
 void serve_with_event_loop(int server_fd, void (*do_service)(int sock)) {
   int kq = kqueue();
   if (kq == -1) {
@@ -102,3 +106,8 @@ void serve_with_event_loop(int server_fd, void (*do_service)(int sock)) {
     }
   }
 }
+#else
+void serve_with_event_loop(int server_fd, void (*do_service)(int sock)) {
+  return;
+}
+#endif
